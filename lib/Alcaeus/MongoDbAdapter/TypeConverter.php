@@ -178,7 +178,7 @@ class TypeConverter
             case $value instanceof Model\BSONDocument:
             case $value instanceof Model\BSONArray:
                 return array_map(
-                    ['self', 'toLegacy'],
+                    [__CLASS__, 'toLegacy'],
                     $value->getArrayCopy()
                 );
             default:
