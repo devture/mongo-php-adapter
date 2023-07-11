@@ -572,6 +572,37 @@ class MongoCollection
     }
 
     /**
+     * Generate an index name from a key specification.
+     *
+     * @internal
+     * @param array|object $document Document containing fields mapped to values,
+     *                               which denote order or an index type
+     * @throws \MongoDB\Exception\InvalidArgumentException
+     */
+    static private function generate_index_name($document): string
+    {
+        if ($document instanceof Serializable) {
+            $document = $document->bsonSerialize();
+        }
+
+        if (is_object($document)) {
+            $document = get_object_vars($document);
+        }
+
+        if (! is_array($document)) {
+            throw \MongoDB\Exception\InvalidArgumentException::invalidType('$document', $document, 'array or object');
+        }
+
+        $name = '';
+
+        foreach ($document as $field => $type) {
+            $name .= ($name != '' ? '_' : '') . $field . '_' . $type;
+        }
+
+        return $name;
+    }
+
+    /**
      * Creates an index on the given field(s), or does nothing if the index already exists
      *
      * @link http://www.php.net/manual/en/mongocollection.createindex.php
@@ -597,7 +628,7 @@ class MongoCollection
         }
 
         if (! isset($options['name'])) {
-            $options['name'] = \MongoDB\generate_index_name($keys);
+            $options['name'] = self::generate_index_name($keys);
         }
 
         $indexes = iterator_to_array($this->collection->listIndexes());
